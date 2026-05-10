@@ -96,6 +96,11 @@ function PageView() {
               <p className="mt-1 font-serif text-sm italic text-muted-foreground">
                 From the Triage Disease Library, the free medical encyclopedia
               </p>
+              {page.description && (
+                <p className="mt-3 font-serif text-base leading-relaxed text-foreground/90">
+                  {page.description}
+                </p>
+              )}
             </header>
 
             <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_260px]">
