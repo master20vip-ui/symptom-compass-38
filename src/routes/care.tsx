@@ -95,32 +95,31 @@ async function fetchNearby(coords: Coords, severity: Severity): Promise<Place[]>
     }>;
   };
 
-  const places: Place[] = json.elements
-    .map((el) => {
-      const lat = el.lat ?? el.center?.lat;
-      const lon = el.lon ?? el.center?.lon;
-      const tags = el.tags ?? {};
-      if (lat == null || lon == null || !tags.name) return null;
-      const amenity = tags.amenity;
-      const cat: Place["category"] =
-        amenity === "hospital" ? "hospital" : amenity === "pharmacy" ? "pharmacy" : amenity === "clinic" ? "clinic" : "doctor";
-      const addressParts = [tags["addr:housenumber"], tags["addr:street"], tags["addr:city"]].filter(Boolean);
-      return {
-        id: `${el.type}/${el.id}`,
-        name: tags.name,
-        category: cat,
-        lat,
-        lon,
-        distanceKm: haversine(coords, { lat, lon }),
-        phone: tags.phone || tags["contact:phone"],
-        website: tags.website || tags["contact:website"],
-        address: addressParts.length ? addressParts.join(" ") : undefined,
-        emergency: tags.emergency === "yes" || cat === "hospital",
-      } satisfies Place;
-    })
-    .filter((p): p is Place => !!p)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
-    .slice(0, 20);
+  const places: Place[] = [];
+  for (const el of json.elements) {
+    const lat = el.lat ?? el.center?.lat;
+    const lon = el.lon ?? el.center?.lon;
+    const tags = el.tags ?? {};
+    if (lat == null || lon == null || !tags.name) continue;
+    const amenity = tags.amenity;
+    const cat: Place["category"] =
+      amenity === "hospital" ? "hospital" : amenity === "pharmacy" ? "pharmacy" : amenity === "clinic" ? "clinic" : "doctor";
+    const addressParts = [tags["addr:housenumber"], tags["addr:street"], tags["addr:city"]].filter(Boolean);
+    places.push({
+      id: `${el.type}/${el.id}`,
+      name: tags.name,
+      category: cat,
+      lat,
+      lon,
+      distanceKm: haversine(coords, { lat, lon }),
+      phone: tags.phone || tags["contact:phone"],
+      website: tags.website || tags["contact:website"],
+      address: addressParts.length ? addressParts.join(" ") : undefined,
+      emergency: tags.emergency === "yes" || cat === "hospital",
+    });
+  }
+  places.sort((a, b) => a.distanceKm - b.distanceKm);
+  return places.slice(0, 20);
 
   return places;
 }
