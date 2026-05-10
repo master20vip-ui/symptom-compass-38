@@ -9,10 +9,17 @@ type Page = {
   id: string;
   slug: string;
   name: string;
+  description: string | null;
   overview: string;
-  causes: string;
   symptoms: string;
+  causes: string;
+  risk_factors: string | null;
+  diagnosis: string | null;
+  treatment: string | null;
   home_remedies: string;
+  prevention: string | null;
+  complications: string | null;
+  prognosis: string | null;
   when_to_see_doctor: string;
   source_url: string | null;
   source_name: string | null;
@@ -29,12 +36,18 @@ export const Route = createFileRoute("/library/$slug")({
   },
 });
 
-const SECTIONS = [
-  { id: "overview", title: "Overview", key: "overview" as const },
-  { id: "causes", title: "Causes", key: "causes" as const },
-  { id: "symptoms", title: "Signs and symptoms", key: "symptoms" as const },
-  { id: "remedies", title: "Home care", key: "home_remedies" as const },
-  { id: "doctor", title: "When to see a doctor", key: "when_to_see_doctor" as const },
+const SECTIONS: { id: string; title: string; key: keyof Page }[] = [
+  { id: "overview", title: "Overview", key: "overview" },
+  { id: "symptoms", title: "Signs and symptoms", key: "symptoms" },
+  { id: "causes", title: "Causes", key: "causes" },
+  { id: "risk-factors", title: "Risk factors", key: "risk_factors" },
+  { id: "diagnosis", title: "Diagnosis", key: "diagnosis" },
+  { id: "treatment", title: "Treatment", key: "treatment" },
+  { id: "remedies", title: "Home care", key: "home_remedies" },
+  { id: "prevention", title: "Prevention", key: "prevention" },
+  { id: "complications", title: "Complications", key: "complications" },
+  { id: "prognosis", title: "Prognosis", key: "prognosis" },
+  { id: "doctor", title: "When to see a doctor", key: "when_to_see_doctor" },
 ];
 
 function PageView() {
