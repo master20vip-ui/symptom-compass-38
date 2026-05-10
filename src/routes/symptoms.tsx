@@ -21,7 +21,7 @@ type Log = {
 
 export const Route = createFileRoute("/symptoms")({
   component: SymptomsPage,
-  head: () => ({ meta: [{ title: "Symptom tracker — Triage" }] }),
+  head: () => ({ meta: [{ title: "Symptom tracker — Symptom Compass" }] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
@@ -90,7 +90,7 @@ function SymptomsPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-semibold">Symptom tracker</h1>
           <p className="text-sm text-muted-foreground">
-            {active ? `Tracking for ${active.name}.` : ""} Log symptoms over time. Triage escalates when symptoms linger or worsen.
+            {active ? `Tracking for ${active.name}.` : ""} Log symptoms over time. Symptom Compass escalates when symptoms linger or worsen.
           </p>
         </div>
 

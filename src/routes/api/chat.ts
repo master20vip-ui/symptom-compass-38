@@ -4,7 +4,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
-const SYSTEM_PROMPT = `You are Triage, an AI symptom-intake assistant. Your role:
+const SYSTEM_PROMPT = `You are Symptom Compass, an AI symptom-intake assistant. Your role:
 
 1. Conduct a focused, conversational symptom intake. Ask ONE question at a time. Start broad ("What is your main symptom?") then narrow (duration, severity, location, triggers, associated symptoms, medications, relevant history).
 

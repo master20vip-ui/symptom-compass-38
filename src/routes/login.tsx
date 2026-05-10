@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
-  head: () => ({ meta: [{ title: "Sign in — Triage" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Symptom Compass" }] }),
 });
 
 function LoginPage() {
@@ -107,7 +107,7 @@ function LoginPage() {
           </button>
         </div>
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          By continuing, you acknowledge Triage provides information, not medical
+          By continuing, you acknowledge Symptom Compass provides information, not medical
           diagnosis.
         </p>
       </div>

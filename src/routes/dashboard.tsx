@@ -33,7 +33,7 @@ type Range = "week" | "month" | "year";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
-  head: () => ({ meta: [{ title: "Health dashboard — Triage" }] }),
+  head: () => ({ meta: [{ title: "Health dashboard — Symptom Compass" }] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
@@ -110,7 +110,7 @@ function DashboardPage() {
         <div className="mb-8">
           <h1 className="font-display text-2xl font-semibold">Health dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Track baseline metrics. Triage references your last logs when assessing symptoms.
+            Track baseline metrics. Symptom Compass references your last logs when assessing symptoms.
           </p>
         </div>
 
