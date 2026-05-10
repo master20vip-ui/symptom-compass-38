@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
+import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const LoginRoute = LoginRouteImport.update({
@@ -41,6 +42,11 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   path: '/library/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibrarySlugRoute = LibrarySlugRouteImport.update({
+  id: '/library/$slug',
+  path: '/library/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/library/$slug': typeof LibrarySlugRoute
   '/library/': typeof LibraryIndexRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/library/$slug': typeof LibrarySlugRoute
   '/library': typeof LibraryIndexRoute
 }
 export interface FileRoutesById {
@@ -70,13 +78,28 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/library/$slug': typeof LibrarySlugRoute
   '/library/': typeof LibraryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/dashboard' | '/login' | '/api/chat' | '/library/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/dashboard'
+    | '/login'
+    | '/api/chat'
+    | '/library/$slug'
+    | '/library/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/dashboard' | '/login' | '/api/chat' | '/library'
+  to:
+    | '/'
+    | '/app'
+    | '/dashboard'
+    | '/login'
+    | '/api/chat'
+    | '/library/$slug'
+    | '/library'
   id:
     | '__root__'
     | '/'
@@ -84,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/api/chat'
+    | '/library/$slug'
     | '/library/'
   fileRoutesById: FileRoutesById
 }
@@ -93,6 +117,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
+  LibrarySlugRoute: typeof LibrarySlugRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
 }
 
@@ -133,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/$slug': {
+      id: '/library/$slug'
+      path: '/library/$slug'
+      fullPath: '/library/$slug'
+      preLoaderRoute: typeof LibrarySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -149,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
+  LibrarySlugRoute: LibrarySlugRoute,
   LibraryIndexRoute: LibraryIndexRoute,
 }
 export const routeTree = rootRouteImport
