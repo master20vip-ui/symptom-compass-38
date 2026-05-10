@@ -11,7 +11,7 @@ import { useProfiles, ageFromDob, type Dependent } from "@/lib/active-profile";
 
 export const Route = createFileRoute("/family")({
   component: FamilyPage,
-  head: () => ({ meta: [{ title: "Family profiles — Triage" }] }),
+  head: () => ({ meta: [{ title: "Family profiles — Symptom Compass" }] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
@@ -69,7 +69,7 @@ function FamilyPage() {
           <div>
             <h1 className="font-display text-2xl font-semibold">Family profiles</h1>
             <p className="text-sm text-muted-foreground">
-              Triage tailors questions and probabilities to the active profile's age & sex.
+              Symptom Compass tailors questions and probabilities to the active profile's age & sex.
             </p>
           </div>
           <Button onClick={() => setOpen((v) => !v)} className="glow-neon">

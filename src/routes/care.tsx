@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/care")({
   component: CarePage,
-  head: () => ({ meta: [{ title: "Find care — Triage" }] }),
+  head: () => ({ meta: [{ title: "Find care — Symptom Compass" }] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();

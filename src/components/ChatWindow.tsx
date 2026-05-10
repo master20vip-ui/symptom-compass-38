@@ -183,7 +183,7 @@ function ChatInner({
             />
             <PromptInputFooter className="justify-between">
               <p className="text-[11px] text-muted-foreground">
-                Triage may be inaccurate. Consult a clinician for diagnosis.
+                Symptom Compass may be inaccurate. Consult a clinician for diagnosis.
               </p>
               <PromptInputSubmit status={status} disabled={isLoading} />
             </PromptInputFooter>
@@ -204,7 +204,7 @@ function EmptyState() {
         What's bothering you today?
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Describe your main symptom in your own words. Triage will ask a few
+        Describe your main symptom in your own words. Symptom Compass will ask a few
         focused questions, then return likely conditions and next steps.
       </p>
       <div className="mt-6 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">

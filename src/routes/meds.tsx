@@ -31,7 +31,7 @@ const KIND_LABEL: Record<Med["kind"], string> = {
 
 export const Route = createFileRoute("/meds")({
   component: MedsPage,
-  head: () => ({ meta: [{ title: "Medications — Triage" }] }),
+  head: () => ({ meta: [{ title: "Medications — Symptom Compass" }] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
@@ -128,7 +128,7 @@ function MedsPage() {
             <h1 className="font-display text-2xl font-semibold">Medications</h1>
             <p className="text-sm text-muted-foreground">
               {active ? `Tracking for ${active.name}.` : "Pick a profile to start."}{" "}
-              Triage cross-references this list when you describe symptoms.
+              Symptom Compass cross-references this list when you describe symptoms.
             </p>
           </div>
           <Button onClick={() => setOpen((v) => !v)} disabled={!activeId} className="glow-neon">

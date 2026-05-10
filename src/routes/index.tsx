@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "Triage — AI symptom checker" },
+      { title: "Symptom Compass — AI symptom checker" },
       {
         name: "description",
         content:
@@ -64,7 +64,7 @@ function Landing() {
               <span className="text-neon">before</span> you book the appointment.
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-              Triage walks you through a conversational intake, then returns a
+              Symptom Compass walks you through a conversational intake, then returns a
               weighted probability of likely conditions and clear next steps —
               with built-in red-flag detection for emergencies.
             </p>

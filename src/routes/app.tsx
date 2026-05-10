@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/app")({
   component: AppPage,
-  head: () => ({ meta: [{ title: "Triage — Symptom check" }] }),
+  head: () => ({ meta: [{ title: "Symptom Compass — Symptom check" }] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
