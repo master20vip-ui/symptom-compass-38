@@ -15,6 +15,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
 import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
+import { Route as ApiLibraryGenerateRouteImport } from './routes/api/library-generate'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const LoginRoute = LoginRouteImport.update({
@@ -47,6 +48,11 @@ const LibrarySlugRoute = LibrarySlugRouteImport.update({
   path: '/library/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLibraryGenerateRoute = ApiLibraryGenerateRouteImport.update({
+  id: '/api/library-generate',
+  path: '/api/library-generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/library-generate': typeof ApiLibraryGenerateRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/library/': typeof LibraryIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/library-generate': typeof ApiLibraryGenerateRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/library': typeof LibraryIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/library-generate': typeof ApiLibraryGenerateRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/library/': typeof LibraryIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/api/chat'
+    | '/api/library-generate'
     | '/library/$slug'
     | '/library/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/api/chat'
+    | '/api/library-generate'
     | '/library/$slug'
     | '/library'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/api/chat'
+    | '/api/library-generate'
     | '/library/$slug'
     | '/library/'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiLibraryGenerateRoute: typeof ApiLibraryGenerateRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
 }
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibrarySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/library-generate': {
+      id: '/api/library-generate'
+      path: '/api/library-generate'
+      fullPath: '/api/library-generate'
+      preLoaderRoute: typeof ApiLibraryGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -181,9 +201,20 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiLibraryGenerateRoute: ApiLibraryGenerateRoute,
   LibrarySlugRoute: LibrarySlugRoute,
   LibraryIndexRoute: LibraryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
