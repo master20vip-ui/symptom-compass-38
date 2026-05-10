@@ -1,0 +1,1 @@
+ALTER TABLE public.disease_pages ADD COLUMN IF NOT EXISTS source_name TEXT;
