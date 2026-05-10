@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SymptomsRouteImport } from './routes/symptoms'
 import { Route as MedsRouteImport } from './routes/meds'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FamilyRouteImport } from './routes/family'
@@ -18,6 +19,11 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const SymptomsRoute = SymptomsRouteImport.update({
+  id: '/symptoms',
+  path: '/symptoms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MedsRoute = MedsRouteImport.update({
   id: '/meds',
   path: '/meds',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/family': typeof FamilyRoute
   '/login': typeof LoginRoute
   '/meds': typeof MedsRoute
+  '/symptoms': typeof SymptomsRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/family': typeof FamilyRoute
   '/login': typeof LoginRoute
   '/meds': typeof MedsRoute
+  '/symptoms': typeof SymptomsRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/family': typeof FamilyRoute
   '/login': typeof LoginRoute
   '/meds': typeof MedsRoute
+  '/symptoms': typeof SymptomsRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/family'
     | '/login'
     | '/meds'
+    | '/symptoms'
     | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/family'
     | '/login'
     | '/meds'
+    | '/symptoms'
     | '/api/chat'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/family'
     | '/login'
     | '/meds'
+    | '/symptoms'
     | '/api/chat'
   fileRoutesById: FileRoutesById
 }
@@ -131,11 +143,19 @@ export interface RootRouteChildren {
   FamilyRoute: typeof FamilyRoute
   LoginRoute: typeof LoginRoute
   MedsRoute: typeof MedsRoute
+  SymptomsRoute: typeof SymptomsRoute
   ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/symptoms': {
+      id: '/symptoms'
+      path: '/symptoms'
+      fullPath: '/symptoms'
+      preLoaderRoute: typeof SymptomsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/meds': {
       id: '/meds'
       path: '/meds'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   FamilyRoute: FamilyRoute,
   LoginRoute: LoginRoute,
   MedsRoute: MedsRoute,
+  SymptomsRoute: SymptomsRoute,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
