@@ -92,7 +92,7 @@ function ChatInner({
     api: "/api/chat",
     headers: { Authorization: `Bearer ${token}` },
     prepareSendMessagesRequest: ({ messages }) => ({
-      body: { messages, threadId },
+      body: { messages, threadId, activeProfileId: getActiveProfileId() },
     }),
   });
 
