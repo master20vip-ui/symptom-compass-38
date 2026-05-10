@@ -117,9 +117,11 @@ function PageView() {
                   </ol>
                 </nav>
 
-                {SECTIONS.map((s) => (
-                  <Section key={s.id} id={s.id} title={s.title} body={page[s.key]} />
-                ))}
+                {SECTIONS.map((s) => {
+                  const body = page[s.key];
+                  if (typeof body !== "string" || !body.trim()) return null;
+                  return <Section key={s.id} id={s.id} title={s.title} body={body} />;
+                })}
 
                 <div className="mt-10 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
                   <ShieldAlert className="mt-0.5 size-4 shrink-0" />
