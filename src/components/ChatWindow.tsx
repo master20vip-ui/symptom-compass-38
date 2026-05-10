@@ -143,7 +143,7 @@ function ChatInner({
                 <div className="prose-chat max-w-full">
                   {m.parts.map((part, i) =>
                     part.type === "text" ? (
-                      <ReactMarkdown key={i}>{part.text}</ReactMarkdown>
+                      <AssistantMarkdown key={i} text={part.text} />
                     ) : null,
                   )}
                 </div>
