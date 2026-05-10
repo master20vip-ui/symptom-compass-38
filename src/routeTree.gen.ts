@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FamilyRouteImport } from './routes/family'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CareRouteImport } from './routes/care'
 import { Route as AppRouteImport } from './routes/app'
@@ -19,6 +20,11 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FamilyRoute = FamilyRouteImport.update({
+  id: '/family',
+  path: '/family',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRoute
   '/care': typeof CareRoute
   '/dashboard': typeof DashboardRoute
+  '/family': typeof FamilyRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/care': typeof CareRoute
   '/dashboard': typeof DashboardRoute
+  '/family': typeof FamilyRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
 }
@@ -69,20 +77,29 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/care': typeof CareRoute
   '/dashboard': typeof DashboardRoute
+  '/family': typeof FamilyRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/care' | '/dashboard' | '/login' | '/api/chat'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/care'
+    | '/dashboard'
+    | '/family'
+    | '/login'
+    | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/care' | '/dashboard' | '/login' | '/api/chat'
+  to: '/' | '/app' | '/care' | '/dashboard' | '/family' | '/login' | '/api/chat'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/care'
     | '/dashboard'
+    | '/family'
     | '/login'
     | '/api/chat'
   fileRoutesById: FileRoutesById
@@ -92,6 +109,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   CareRoute: typeof CareRoute
   DashboardRoute: typeof DashboardRoute
+  FamilyRoute: typeof FamilyRoute
   LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
 }
@@ -103,6 +121,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/family': {
+      id: '/family'
+      path: '/family'
+      fullPath: '/family'
+      preLoaderRoute: typeof FamilyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -148,9 +173,20 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   CareRoute: CareRoute,
   DashboardRoute: DashboardRoute,
+  FamilyRoute: FamilyRoute,
   LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
