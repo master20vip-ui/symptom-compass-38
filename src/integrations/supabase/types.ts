@@ -17,46 +17,67 @@ export type Database = {
       disease_pages: {
         Row: {
           causes: string
+          complications: string | null
           created_at: string
           created_by: string | null
+          description: string | null
+          diagnosis: string | null
           home_remedies: string
           id: string
           name: string
           overview: string
+          prevention: string | null
+          prognosis: string | null
+          risk_factors: string | null
           slug: string
           source_name: string | null
           source_url: string | null
           symptoms: string
+          treatment: string | null
           updated_at: string
           when_to_see_doctor: string
         }
         Insert: {
           causes: string
+          complications?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
+          diagnosis?: string | null
           home_remedies: string
           id?: string
           name: string
           overview: string
+          prevention?: string | null
+          prognosis?: string | null
+          risk_factors?: string | null
           slug: string
           source_name?: string | null
           source_url?: string | null
           symptoms: string
+          treatment?: string | null
           updated_at?: string
           when_to_see_doctor: string
         }
         Update: {
           causes?: string
+          complications?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
+          diagnosis?: string | null
           home_remedies?: string
           id?: string
           name?: string
           overview?: string
+          prevention?: string | null
+          prognosis?: string | null
+          risk_factors?: string | null
           slug?: string
           source_name?: string | null
           source_url?: string | null
           symptoms?: string
+          treatment?: string | null
           updated_at?: string
           when_to_see_doctor?: string
         }

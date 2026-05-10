@@ -1,0 +1,8 @@
+ALTER TABLE public.disease_pages
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS risk_factors TEXT,
+  ADD COLUMN IF NOT EXISTS diagnosis TEXT,
+  ADD COLUMN IF NOT EXISTS treatment TEXT,
+  ADD COLUMN IF NOT EXISTS prevention TEXT,
+  ADD COLUMN IF NOT EXISTS complications TEXT,
+  ADD COLUMN IF NOT EXISTS prognosis TEXT;
