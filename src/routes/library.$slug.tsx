@@ -15,6 +15,7 @@ type Page = {
   home_remedies: string;
   when_to_see_doctor: string;
   source_url: string | null;
+  source_name: string | null;
   updated_at: string;
 };
 
