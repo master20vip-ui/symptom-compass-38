@@ -29,84 +29,35 @@ function stripHtml(html: string) {
 }
 
 const PageSchema = z.object({
-  name: z.string(),
-  overview: z.string(),
-  causes: z.string(),
-  symptoms: z.string(),
-  home_remedies: z.string(),
-  when_to_see_doctor: z.string(),
+  name: z.string().describe("Canonical disease name in Title Case"),
+  description: z.string().describe("1-2 sentence plain-language definition"),
+  overview: z.string().describe("2-4 paragraphs explaining what it is, who it affects, how common it is"),
+  symptoms: z.string().describe("Bulleted list of typical signs and symptoms"),
+  causes: z.string().describe("Bulleted list of causes / pathophysiology"),
+  risk_factors: z.string().describe("Bulleted list of risk factors"),
+  diagnosis: z.string().describe("How clinicians diagnose it (tests, exams)"),
+  treatment: z.string().describe("Medical treatments and management options"),
+  home_remedies: z.string().describe("Safe self-care steps"),
+  prevention: z.string().describe("How to prevent or reduce risk (vaccines, hygiene, lifestyle)"),
+  complications: z.string().describe("Possible complications if untreated"),
+  prognosis: z.string().describe("Expected outcomes and recovery"),
+  when_to_see_doctor: z.string().describe("Warning signs and timing for seeking care"),
 });
 
-type SourceArticle = { title: string; extract: string; url: string; sourceName: string };
+type SourceArticle = {
+  title: string;
+  extract: string;
+  url: string;
+  sourceName: string;
+};
 
-// ---------- MedlinePlus (NIH) ----------
-
-async function searchMedlinePlus(query: string): Promise<SourceArticle | null> {
-  const url = `https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term=${encodeURIComponent(
-    query,
-  )}&retmax=1`;
-  const res = await fetch(url, { headers: { "User-Agent": "Triage-Library/1.0" } });
-  if (!res.ok) return null;
-  const xml = await res.text();
-
-  // Extract first <document>...</document>
-  const docMatch = xml.match(/<document[^>]*>([\s\S]*?)<\/document>/);
-  if (!docMatch) return null;
-  const doc = docMatch[1];
-
-  const pickContent = (name: string) => {
-    const re = new RegExp(
-      `<content\\s+name=\"${name}\"[^>]*>([\\s\\S]*?)<\\/content>`,
-      "i",
-    );
-    const m = doc.match(re);
-    return m ? m[1] : "";
-  };
-
-  const rawTitle = pickContent("title");
-  const rawSummary = pickContent("FullSummary") || pickContent("snippet");
-  const urlAttr = docMatch[0].match(/<document[^>]*url=\"([^\"]+)\"/);
-
-  const title = stripHtml(rawTitle);
-  const summary = stripHtml(rawSummary);
-  if (!title || !summary || summary.length < 80) return null;
-
-  const topicUrl = urlAttr?.[1] ?? `https://medlineplus.gov/`;
-
-  // Try to enrich with the full topic page text
-  let extract = summary;
-  try {
-    const pageRes = await fetch(topicUrl, {
-      headers: { "User-Agent": "Triage-Library/1.0" },
-    });
-    if (pageRes.ok) {
-      const html = await pageRes.text();
-      // Grab the main content area if possible
-      const mainMatch =
-        html.match(/<article[\s\S]*?<\/article>/i) ||
-        html.match(/<main[\s\S]*?<\/main>/i);
-      const text = stripHtml(mainMatch ? mainMatch[0] : html);
-      if (text.length > summary.length) extract = text;
-    }
-  } catch {
-    // fall back to summary
-  }
-
-  return {
-    title,
-    extract: extract.slice(0, 12000),
-    url: topicUrl,
-    sourceName: "MedlinePlus (NIH)",
-  };
-}
-
-// ---------- Wikipedia (fallback) ----------
+// ---------- Wikipedia (primary — better coverage for specific conditions) ----------
 
 type WikiSearchHit = { title: string; pageid: number };
 
 async function searchWikipedia(query: string): Promise<WikiSearchHit | null> {
   const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
-    query + " (medical condition OR disease OR symptom)",
+    query,
   )}&format=json&origin=*&srlimit=1`;
   const res = await fetch(url, { headers: { "User-Agent": "Triage-Library/1.0" } });
   if (!res.ok) return null;
@@ -129,9 +80,54 @@ async function fetchWikipediaArticle(query: string): Promise<SourceArticle | nul
   if (!page || page.missing || !page.extract) return null;
   return {
     title: page.title,
-    extract: page.extract.slice(0, 12000),
+    extract: page.extract.slice(0, 30000),
     url: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, "_"))}`,
     sourceName: "Wikipedia",
+  };
+}
+
+// ---------- MedlinePlus (NIH) — supplemental ----------
+
+async function fetchMedlinePlusArticle(query: string): Promise<SourceArticle | null> {
+  const url = `https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term=${encodeURIComponent(
+    query,
+  )}&retmax=1`;
+  const res = await fetch(url, { headers: { "User-Agent": "Triage-Library/1.0" } });
+  if (!res.ok) return null;
+  const xml = await res.text();
+  const docMatch = xml.match(/<document[^>]*>([\s\S]*?)<\/document>/);
+  if (!docMatch) return null;
+  const doc = docMatch[1];
+  const pickContent = (name: string) => {
+    const re = new RegExp(`<content\\s+name=\"${name}\"[^>]*>([\\s\\S]*?)<\\/content>`, "i");
+    const m = doc.match(re);
+    return m ? m[1] : "";
+  };
+  const rawTitle = pickContent("title");
+  const rawSummary = pickContent("FullSummary") || pickContent("snippet");
+  const urlAttr = docMatch[0].match(/<document[^>]*url=\"([^\"]+)\"/);
+  const title = stripHtml(rawTitle);
+  const summary = stripHtml(rawSummary);
+  if (!title || !summary || summary.length < 80) return null;
+  const topicUrl = urlAttr?.[1] ?? "https://medlineplus.gov/";
+  let extract = summary;
+  try {
+    const pageRes = await fetch(topicUrl, { headers: { "User-Agent": "Triage-Library/1.0" } });
+    if (pageRes.ok) {
+      const html = await pageRes.text();
+      const mainMatch =
+        html.match(/<article[\s\S]*?<\/article>/i) || html.match(/<main[\s\S]*?<\/main>/i);
+      const text = stripHtml(mainMatch ? mainMatch[0] : html);
+      if (text.length > summary.length) extract = text;
+    }
+  } catch {
+    /* keep summary */
+  }
+  return {
+    title,
+    extract: extract.slice(0, 15000),
+    url: topicUrl,
+    sourceName: "MedlinePlus (NIH)",
   };
 }
 
@@ -154,18 +150,28 @@ export const getOrGenerateDiseasePage = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing) return existing;
 
-    // 1. Try MedlinePlus first, then Wikipedia
-    let article = await searchMedlinePlus(data.query);
-    if (!article) {
-      article = await fetchWikipediaArticle(data.query);
-    }
-    if (!article) {
+    // Pull from BOTH sources in parallel for the most comprehensive entry
+    const [wiki, mlp] = await Promise.all([
+      fetchWikipediaArticle(data.query),
+      fetchMedlinePlusArticle(data.query),
+    ]);
+
+    const primary = wiki ?? mlp;
+    if (!primary) {
       throw new Error(
         `No reliable medical source found for "${data.query}". Try a more specific medical term (e.g. "tension headache" instead of "head pain").`,
       );
     }
 
-    // 2. Use Lovable AI to restructure the source into encyclopedia sections
+    const sources: SourceArticle[] = [wiki, mlp].filter((x): x is SourceArticle => !!x);
+    const sourceLabel = sources.map((s) => s.sourceName).join(" + ");
+    const sourceBlocks = sources
+      .map(
+        (s) => `--- SOURCE: ${s.sourceName} (${s.url}) ---
+${s.extract}`,
+      )
+      .join("\n\n");
+
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
     const gateway = createLovableAiGatewayProvider(apiKey);
@@ -174,36 +180,46 @@ export const getOrGenerateDiseasePage = createServerFn({ method: "POST" })
       model: gateway("google/gemini-2.5-flash"),
       schema: PageSchema,
       system:
-        "You are a medical writer. Rewrite source material into a plain-language encyclopedia entry for laypeople. Avoid jargon. Use only information present in the SOURCE. Do not invent facts. If a section has no source material, say so briefly. Format each section as Markdown with bullet points where appropriate. Never prescribe specific medications or doses.",
-      prompt: `TOPIC: ${article.title}
-SOURCE NAME: ${article.sourceName}
+        "You are a medical encyclopedia writer (think Wikipedia + Mayo Clinic). Produce a comprehensive, well-organized entry in plain English for a layperson, using ONLY information present in the provided SOURCES. Do not invent facts. If a section truly has no source material, write a brief honest note like 'No specific information was available in the source.' Use Markdown: short paragraphs, bullet lists, bold key terms. Be thorough — readers expect detail. Never prescribe specific medications or doses.",
+      prompt: `TOPIC: ${data.query} (canonical: ${primary.title})
 
-SOURCE (treat as ground truth):
-"""
-${article.extract}
-"""
+${sourceBlocks}
 
-Produce an encyclopedia entry with these sections, in plain English, derived from the SOURCE only:
-- name: canonical name (Title Case, taken from TOPIC)
-- overview: 2-3 short paragraphs describing what this is
-- causes: bulleted list of common causes / risk factors
-- symptoms: bulleted list of typical symptoms / signs
-- home_remedies: bulleted list of safe self-care steps mentioned in the source (skip prescription treatments)
-- when_to_see_doctor: bulleted list of warning signs and timing guidance for seeking care`,
+Write a complete encyclopedia entry covering ALL of these sections in depth:
+- name: canonical Title Case name
+- description: 1-2 sentence definition (like a dictionary entry)
+- overview: 2-4 paragraphs — what it is, who it affects, epidemiology, types/variants
+- symptoms: comprehensive bulleted list of all signs and symptoms mentioned
+- causes: causes, pathogens, mechanisms (bulleted)
+- risk_factors: who is at higher risk (bulleted)
+- diagnosis: how doctors diagnose it — exams, lab tests, imaging
+- treatment: medical treatments, medications classes, procedures (general only, no doses)
+- home_remedies: safe self-care and supportive measures
+- prevention: vaccines, hygiene, lifestyle, screening
+- complications: possible complications if untreated or severe
+- prognosis: typical recovery, mortality, long-term outlook
+- when_to_see_doctor: warning signs and emergency symptoms`,
     });
 
     const { data: inserted, error } = await supabase
       .from("disease_pages")
       .insert({
         slug,
-        name: object.name || article.title,
+        name: object.name || primary.title,
+        description: object.description,
         overview: object.overview,
-        causes: object.causes,
         symptoms: object.symptoms,
+        causes: object.causes,
+        risk_factors: object.risk_factors,
+        diagnosis: object.diagnosis,
+        treatment: object.treatment,
         home_remedies: object.home_remedies,
+        prevention: object.prevention,
+        complications: object.complications,
+        prognosis: object.prognosis,
         when_to_see_doctor: object.when_to_see_doctor,
-        source_url: article.url,
-        source_name: article.sourceName,
+        source_url: primary.url,
+        source_name: sourceLabel,
         created_by: userId,
       })
       .select()
