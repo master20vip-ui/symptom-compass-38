@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      disease_pages: {
+        Row: {
+          causes: string
+          created_at: string
+          created_by: string | null
+          home_remedies: string
+          id: string
+          name: string
+          overview: string
+          slug: string
+          symptoms: string
+          updated_at: string
+          when_to_see_doctor: string
+        }
+        Insert: {
+          causes: string
+          created_at?: string
+          created_by?: string | null
+          home_remedies: string
+          id?: string
+          name: string
+          overview: string
+          slug: string
+          symptoms: string
+          updated_at?: string
+          when_to_see_doctor: string
+        }
+        Update: {
+          causes?: string
+          created_at?: string
+          created_by?: string | null
+          home_remedies?: string
+          id?: string
+          name?: string
+          overview?: string
+          slug?: string
+          symptoms?: string
+          updated_at?: string
+          when_to_see_doctor?: string
+        }
+        Relationships: []
+      }
+      health_metrics: {
+        Row: {
+          created_at: string
+          height_cm: number | null
+          id: string
+          mood: number | null
+          notes: string | null
+          recorded_on: string
+          sleep_hours: number | null
+          steps: number | null
+          updated_at: string
+          user_id: string
+          water_ml: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          mood?: number | null
+          notes?: string | null
+          recorded_on?: string
+          sleep_hours?: number | null
+          steps?: number | null
+          updated_at?: string
+          user_id: string
+          water_ml?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          mood?: number | null
+          notes?: string | null
+          recorded_on?: string
+          sleep_hours?: number | null
+          steps?: number | null
+          updated_at?: string
+          user_id?: string
+          water_ml?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           created_at: string
