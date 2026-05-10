@@ -24,6 +24,7 @@ export type Database = {
           name: string
           overview: string
           slug: string
+          source_name: string | null
           source_url: string | null
           symptoms: string
           updated_at: string
@@ -38,6 +39,7 @@ export type Database = {
           name: string
           overview: string
           slug: string
+          source_name?: string | null
           source_url?: string | null
           symptoms: string
           updated_at?: string
@@ -52,6 +54,7 @@ export type Database = {
           name?: string
           overview?: string
           slug?: string
+          source_name?: string | null
           source_url?: string | null
           symptoms?: string
           updated_at?: string
