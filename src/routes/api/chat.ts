@@ -170,7 +170,7 @@ export const Route = createFileRoute("/api/chat")({
 
           const result = streamText({
             model,
-            system: SYSTEM_PROMPT,
+            system: SYSTEM_PROMPT + contextBlock,
             messages: await convertToModelMessages(messages),
           });
 
