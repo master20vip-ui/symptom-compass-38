@@ -1,11 +1,9 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getOrGenerateDiseasePage } from "@/lib/disease.functions";
 import { Search, BookOpen, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,7 +24,6 @@ function LibraryPage() {
   const [recent, setRecent] = useState<PageRow[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const generate = useServerFn(getOrGenerateDiseasePage);
 
   useEffect(() => {
     (async () => {
@@ -44,14 +41,24 @@ function LibraryPage() {
     if (!q.trim() || loading) return;
     setLoading(true);
     try {
-      const page = await generate({ data: { query: q.trim() } });
-      navigate({ to: "/library/$slug", params: { slug: page.slug } });
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) throw new Error("Please sign in again");
+      const res = await fetch("/api/library-generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ query: q.trim() }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { slug?: string; error?: string };
+      if (!res.ok || !json.slug) throw new Error(json.error || `Request failed (${res.status})`);
+      navigate({ to: "/library/$slug", params: { slug: json.slug } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not load article");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background">
