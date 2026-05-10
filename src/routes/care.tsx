@@ -68,7 +68,7 @@ function haversine(a: Coords, b: Coords) {
 }
 
 async function fetchNearby(coords: Coords, severity: Severity): Promise<Place[]> {
-  const radius = severity === "high" ? 20000 : severity === "medium" ? 10000 : 5000;
+  const radius = severity === "high" ? 50000 : severity === "medium" ? 30000 : 15000;
   // For high severity, prioritize hospitals/ER. Low severity → clinics + pharmacies.
   const filters =
     severity === "high"
