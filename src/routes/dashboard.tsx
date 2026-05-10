@@ -7,6 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Activity, Droplet, Moon, Footprints, Smile, Scale } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 type Metric = {
   id: string;
@@ -19,6 +28,8 @@ type Metric = {
   mood: number | null;
   notes: string | null;
 };
+
+type Range = "week" | "month" | "year";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -33,6 +44,7 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardPage() {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState<Range>("week");
   const [form, setForm] = useState({
     weight_kg: "",
     height_cm: "",
@@ -48,7 +60,7 @@ function DashboardPage() {
       .from("health_metrics")
       .select("*")
       .order("recorded_on", { ascending: false })
-      .limit(30);
+      .limit(500);
     if (error) toast.error("Could not load metrics");
     else setMetrics((data ?? []) as Metric[]);
     setLoading(false);
