@@ -165,7 +165,8 @@ function DashboardPage() {
   );
 }
 
-function Field({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & React.InputHTMLAttributes<HTMLInputElement>) {
+type FieldProps = { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">;
+function Field({ label, value, onChange, ...rest }: FieldProps) {
   return (
     <div>
       <Label className="mb-1.5 block text-xs">{label}</Label>
