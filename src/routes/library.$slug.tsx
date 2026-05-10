@@ -134,7 +134,10 @@ function PageView() {
                     {page.source_url && (
                       <div>
                         <dt className="text-muted-foreground">Source</dt>
-                        <dd>
+                        <dd className="font-serif">
+                          {page.source_name && (
+                            <div className="mb-0.5">{page.source_name}</div>
+                          )}
                           <a
                             href={page.source_url}
                             target="_blank"
