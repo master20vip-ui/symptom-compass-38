@@ -121,8 +121,33 @@ function DashboardPage() {
           <Stat icon={Footprints} label="Steps" value={today?.steps?.toLocaleString() ?? "—"} hint="last log" />
         </section>
 
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-display text-base font-semibold">Trends</h2>
+            <div className="inline-flex rounded-lg border border-border bg-card/40 p-0.5 text-xs">
+              {(["week", "month", "year"] as Range[]).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRange(r)}
+                  className={`rounded-md px-3 py-1 capitalize transition ${range === r ? "bg-neon/15 text-neon" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {r === "week" ? "Weekly" : r === "month" ? "Monthly" : "Yearly"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <MetricChart title="Weight" unit="kg" color="hsl(160 84% 50%)" metrics={metrics} field="weight_kg" range={range} agg="avg" />
+            <MetricChart title="Water" unit="ml" color="hsl(199 89% 60%)" metrics={metrics} field="water_ml" range={range} agg="sum" />
+            <MetricChart title="Sleep" unit="h" color="hsl(258 90% 70%)" metrics={metrics} field="sleep_hours" range={range} agg="avg" />
+            <MetricChart title="Steps" unit="" color="hsl(152 76% 55%)" metrics={metrics} field="steps" range={range} agg="sum" />
+            <MetricChart title="Mood" unit="/5" color="hsl(38 92% 55%)" metrics={metrics} field="mood" range={range} agg="avg" />
+          </div>
+        </section>
+
         <section className="mb-10 rounded-2xl border border-border bg-card/40 p-6">
           <h2 className="mb-4 font-display text-base font-semibold">Log today</h2>
+
           <form onSubmit={submit} className="grid grid-cols-2 gap-4 md:grid-cols-3">
             <Field label="Weight (kg)" value={form.weight_kg} onChange={(v) => setForm({ ...form, weight_kg: v })} type="number" step="0.1" />
             <Field label="Height (cm)" value={form.height_cm} onChange={(v) => setForm({ ...form, height_cm: v })} type="number" step="0.1" />
