@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { AppNav } from "@/components/AppNav";
-import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ExternalLink, ShieldAlert } from "lucide-react";
 
 type Page = {
   id: string;
@@ -14,6 +14,7 @@ type Page = {
   symptoms: string;
   home_remedies: string;
   when_to_see_doctor: string;
+  source_url: string | null;
 };
 
 export const Route = createFileRoute("/library/$slug")({
@@ -58,6 +59,16 @@ function PageView() {
         ) : (
           <article className="prose-chat">
             <h1 className="font-display text-3xl font-semibold">{page.name}</h1>
+            {page.source_url && (
+              <a
+                href={page.source_url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="mt-1 inline-flex items-center gap-1 text-xs text-neon hover:underline"
+              >
+                <ExternalLink className="size-3" /> Source: {new URL(page.source_url).hostname}
+              </a>
+            )}
             <Section title="Overview" body={page.overview} />
             <Section title="Common causes" body={page.causes} />
             <Section title="Symptoms" body={page.symptoms} />

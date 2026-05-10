@@ -1,0 +1,1 @@
+ALTER TABLE public.disease_pages ADD COLUMN source_url TEXT;
