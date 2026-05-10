@@ -73,14 +73,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Symptom Compass" },
+      { name: "description", content: "An app used for early diagnosis and health checking" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Symptom Compass" },
+      { property: "og:description", content: "An app used for early diagnosis and health checking" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Symptom Compass" },
+      { name: "twitter:description", content: "An app used for early diagnosis and health checking" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/e8e69e1a-4beb-4b3e-989b-cd2ac78e6a68" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/e8e69e1a-4beb-4b3e-989b-cd2ac78e6a68" },
     ],
     links: [
       {
