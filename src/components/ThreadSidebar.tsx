@@ -1,6 +1,6 @@
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
-import { Plus, Trash2, LogOut, MessageSquareText, Activity, BookOpen } from "lucide-react";
+import { Plus, Trash2, LogOut, MessageSquareText, Activity } from "lucide-react";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
