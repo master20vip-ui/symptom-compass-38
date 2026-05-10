@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { supabase } from "@/integrations/supabase/client";
-import ReactMarkdown from "react-markdown";
+import { AssistantMarkdown } from "./ProbabilityAssessment";
 import { Conversation, ConversationContent, ConversationScrollButton } from "./ai-elements/conversation";
 import { Message, MessageContent } from "./ai-elements/message";
 import {
@@ -143,7 +143,7 @@ function ChatInner({
                 <div className="prose-chat max-w-full">
                   {m.parts.map((part, i) =>
                     part.type === "text" ? (
-                      <ReactMarkdown key={i}>{part.text}</ReactMarkdown>
+                      <AssistantMarkdown key={i} text={part.text} />
                     ) : null,
                   )}
                 </div>
