@@ -1,12 +1,13 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
-import { MessageSquareText, Activity, LogOut } from "lucide-react";
+import { MessageSquareText, Activity, BookOpen, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const items = [
   { to: "/app", label: "Symptom check", icon: MessageSquareText },
   { to: "/dashboard", label: "Health dashboard", icon: Activity },
+  { to: "/library", label: "Disease library", icon: BookOpen },
 ] as const;
 
 export function AppNav() {
