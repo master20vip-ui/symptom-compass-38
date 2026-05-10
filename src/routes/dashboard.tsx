@@ -252,3 +252,124 @@ function lastNonNull(arr: Metric[], key: keyof Metric): number | null {
   }
   return null;
 }
+
+type ChartField = "weight_kg" | "water_ml" | "sleep_hours" | "steps" | "mood";
+
+function MetricChart({
+  title,
+  unit,
+  color,
+  metrics,
+  field,
+  range,
+  agg,
+}: {
+  title: string;
+  unit: string;
+  color: string;
+  metrics: Metric[];
+  field: ChartField;
+  range: Range;
+  agg: "avg" | "sum";
+}) {
+  const data = useMemo(() => buildSeries(metrics, field, range, agg), [metrics, field, range, agg]);
+  const hasData = data.some((d) => d.value != null);
+
+  return (
+    <div className="rounded-2xl border border-border bg-card/40 p-4">
+      <div className="mb-2 flex items-baseline justify-between">
+        <h3 className="text-sm font-medium">{title}</h3>
+        <span className="text-[11px] text-muted-foreground">{unit}</span>
+      </div>
+      <div className="h-40">
+        {!hasData ? (
+          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+            No data for this range
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id={`g-${field}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} width={40} />
+              <Tooltip
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                formatter={(v: number) => [unit ? `${v} ${unit}` : v, title]}
+              />
+              <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#g-${field})`} connectNulls />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function buildSeries(metrics: Metric[], field: ChartField, range: Range, agg: "avg" | "sum") {
+  const now = new Date();
+  const buckets: { key: string; label: string; start: Date; end: Date }[] = [];
+
+  if (range === "week") {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      const end = new Date(d);
+      end.setDate(end.getDate() + 1);
+      buckets.push({
+        key: d.toISOString().slice(0, 10),
+        label: d.toLocaleDateString(undefined, { weekday: "short" }),
+        start: d,
+        end,
+      });
+    }
+  } else if (range === "month") {
+    // 4 weeks (last 28 days grouped by week)
+    for (let i = 3; i >= 0; i--) {
+      const end = new Date(now);
+      end.setHours(0, 0, 0, 0);
+      end.setDate(end.getDate() - i * 7);
+      end.setDate(end.getDate() + 1);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 7);
+      buckets.push({
+        key: `w${i}`,
+        label: `W${4 - i}`,
+        start,
+        end,
+      });
+    }
+  } else {
+    // 12 months
+    for (let i = 11; i >= 0; i--) {
+      const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+      buckets.push({
+        key: `${start.getFullYear()}-${start.getMonth()}`,
+        label: start.toLocaleDateString(undefined, { month: "short" }),
+        start,
+        end,
+      });
+    }
+  }
+
+  return buckets.map((b) => {
+    const vals: number[] = [];
+    for (const m of metrics) {
+      const v = m[field];
+      if (typeof v !== "number") continue;
+      const d = new Date(m.recorded_on);
+      if (d >= b.start && d < b.end) vals.push(v);
+    }
+    if (vals.length === 0) return { label: b.label, value: null as number | null };
+    const result = agg === "sum" ? vals.reduce((a, c) => a + c, 0) : vals.reduce((a, c) => a + c, 0) / vals.length;
+    return { label: b.label, value: Math.round(result * 100) / 100 };
+  });
+}
