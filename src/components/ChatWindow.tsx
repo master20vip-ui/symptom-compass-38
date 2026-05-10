@@ -14,6 +14,7 @@ import {
 import { Shimmer } from "./ai-elements/shimmer";
 import { ShieldAlert, Sparkle } from "lucide-react";
 import { toast } from "sonner";
+import { getActiveProfileId } from "@/lib/active-profile";
 
 type Props = {
   threadId: string;
@@ -91,7 +92,7 @@ function ChatInner({
     api: "/api/chat",
     headers: { Authorization: `Bearer ${token}` },
     prepareSendMessagesRequest: ({ messages }) => ({
-      body: { messages, threadId },
+      body: { messages, threadId, activeProfileId: getActiveProfileId() },
     }),
   });
 

@@ -128,6 +128,62 @@ export type Database = {
         }
         Relationships: []
       }
+      medications: {
+        Row: {
+          common_side_effects: string[]
+          created_at: string
+          dosage: string | null
+          ended_on: string | null
+          frequency: string | null
+          id: string
+          kind: Database["public"]["Enums"]["medication_kind"]
+          name: string
+          notes: string | null
+          profile_id: string
+          started_on: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          common_side_effects?: string[]
+          created_at?: string
+          dosage?: string | null
+          ended_on?: string | null
+          frequency?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["medication_kind"]
+          name: string
+          notes?: string | null
+          profile_id: string
+          started_on?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          common_side_effects?: string[]
+          created_at?: string
+          dosage?: string | null
+          ended_on?: string | null
+          frequency?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["medication_kind"]
+          name?: string
+          notes?: string | null
+          profile_id?: string
+          started_on?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_dependents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           created_at: string
@@ -159,6 +215,86 @@ export type Database = {
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles_dependents: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          id: string
+          is_default: boolean
+          name: string
+          notes: string | null
+          owner_id: string
+          relation: Database["public"]["Enums"]["profile_relation"]
+          sex: Database["public"]["Enums"]["profile_sex"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          notes?: string | null
+          owner_id: string
+          relation?: Database["public"]["Enums"]["profile_relation"]
+          sex?: Database["public"]["Enums"]["profile_sex"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          relation?: Database["public"]["Enums"]["profile_relation"]
+          sex?: Database["public"]["Enums"]["profile_sex"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      symptom_logs: {
+        Row: {
+          created_at: string
+          id: string
+          logged_at: string
+          notes: string | null
+          profile_id: string
+          severity: number
+          symptom: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          profile_id: string
+          severity?: number
+          symptom: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          profile_id?: string
+          severity?: number
+          symptom?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "symptom_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_dependents"
             referencedColumns: ["id"]
           },
         ]
@@ -195,7 +331,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      medication_kind: "prescription" | "otc" | "supplement"
+      profile_relation: "self" | "child" | "parent" | "partner" | "other"
+      profile_sex: "male" | "female" | "other" | "unspecified"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -322,6 +460,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      medication_kind: ["prescription", "otc", "supplement"],
+      profile_relation: ["self", "child", "parent", "partner", "other"],
+      profile_sex: ["male", "female", "other", "unspecified"],
+    },
   },
 } as const

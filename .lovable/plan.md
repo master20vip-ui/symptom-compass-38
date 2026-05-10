@@ -1,44 +1,90 @@
+## Goal
+Add three connected features to Triage:
+1. **Medication & Interaction Tracker** — vault of meds the user takes
+2. **Family & Dependent Profiles** — multiple sub-profiles (kids, parents) under one account
+3. **Longitudinal Symptom Tracker** — log lingering symptoms over time, escalate based on duration
 
-# Real Medical Data for the Disease Library
+All three feed the AI triage chat so the Probability Engine becomes context-aware.
 
-Currently, library entries are generated only from Wikipedia. We'll layer in **MedlinePlus** (the U.S. National Library of Medicine's free consumer-health API) as the primary source, with Wikipedia as fallback. Both are free, key-less, and CORS/server-friendly.
+---
 
-## Data sources
+## Database (one migration)
 
-1. **MedlinePlus Connect / Web Service** (primary)
-   - Endpoint: `https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term=<query>&rettype=brief`
-   - Returns ranked health topics with title, summary HTML, and a canonical `medlineplus.gov` URL.
-   - For the top hit, we also fetch the full topic page text via the topic URL (server-side fetch + strip HTML) to give the AI richer source material.
-2. **Wikipedia** (fallback)
-   - Existing logic already in `src/lib/disease.functions.ts` is kept as-is.
-3. **Not found**
-   - If MedlinePlus returns 0 hits **and** Wikipedia returns 0 hits, throw a clear error: *"No reliable medical source found for '<term>'. Try a more specific medical term."*
-   - The library page already toasts this message — no UI change needed.
+New tables, all with RLS scoped to `auth.uid()`:
 
-## What changes
+- **`profiles_dependents`** — sub-profiles owned by the account
+  - `owner_id`, `name`, `relation` (self/child/parent/partner/other), `date_of_birth`, `sex`, `notes`, `is_default` bool
+  - On user signup (or first dashboard visit), auto-create a "self" profile.
+- **`medications`**
+  - `user_id`, `profile_id` (→ dependents), `name`, `dosage`, `frequency`, `kind` (prescription/otc/supplement), `started_on`, `ended_on` nullable, `notes`, `common_side_effects` text[] (user-tagged or AI-suggested later)
+- **`symptom_logs`**
+  - `user_id`, `profile_id`, `symptom`, `severity` (1–5), `notes`, `logged_at`
+  - Index on `(profile_id, symptom, logged_at)` for trend queries.
 
-### `src/lib/disease.functions.ts`
-- Add `searchMedlinePlus(query)` — calls the NLM wsearch API, parses the XML/JSON response, returns `{ title, summary, url } | null`.
-- Add `fetchMedlinePlusArticle(url)` — fetches the topic page HTML, strips tags, returns up to ~12k chars of plain text.
-- Update `getOrGenerateDiseasePage`:
-  1. Try MedlinePlus first. If hit, use it as the AI's SOURCE and store its URL in `source_url`.
-  2. If MedlinePlus misses, fall back to existing Wikipedia path.
-  3. If both miss, throw the not-found error (no AI generation, no DB insert).
-- Pass a `source_name` ("MedlinePlus (NIH)" or "Wikipedia") into the AI prompt and persist it so the article header can display it.
+No changes to existing tables.
 
-### `src/routes/library.$slug.tsx` (small UI tweak)
-- In the infobox sidebar, show the source label (e.g. "MedlinePlus (NIH)") next to the source link, so readers know where the content came from.
-- No layout changes.
+---
 
-### Database
-- Add a nullable `source_name TEXT` column to `disease_pages` so we can label each entry's origin. Existing rows stay valid.
+## UI — three new routes + nav entries
+
+### `/meds` — Medication vault
+- List grouped by kind (Rx / OTC / Supplements), filtered by active profile.
+- Add/edit/delete dialog. Mark as ended (keeps history).
+- Empty state with primer copy.
+
+### `/family` — Profiles manager
+- Card grid of profiles with name, age (computed), relation, "set as active" button.
+- Add/edit/delete (cannot delete the only profile).
+- Active profile stored in `localStorage` + a small Zustand-free context (`useActiveProfile` hook).
+- Show active profile chip in `AppNav` with a quick-switch dropdown.
+
+### `/symptoms` — Longitudinal tracker
+- Timeline view: list of recent logs grouped by symptom.
+- "Log symptom" form (symptom name, severity slider, notes).
+- Per-symptom trend mini-chart (reuse recharts pattern from dashboard) showing severity over the last 30 days.
+- Duration badge ("ongoing 14 days") with color escalation: green <7d, amber 7–21d, red >21d.
+
+### `AppNav` updates
+- Add links: Meds, Family, Symptoms.
+- Active-profile chip with dropdown switcher.
+
+---
+
+## AI integration (the synergy)
+
+Update `src/routes/api/chat.ts` to inject a context block into the system prompt before the AI call:
+
+```
+ACTIVE PROFILE: name (age, sex, relation)
+CURRENT MEDICATIONS:
+  - Lisinopril 10mg daily (Rx, started 2025-01-10) — common side effects: dizziness, dry cough
+  - …
+RECENT SYMPTOM HISTORY (last 30 days):
+  - cough: severity 2 on day 1, severity 3 on day 7, severity 4 on day 14 (ongoing 14 days)
+  - …
+```
+
+Prompt instructions appended:
+- Before suggesting new conditions, check if reported symptoms match listed medication side effects and call that out explicitly.
+- When a symptom appears in the history with duration ≥7 days OR shows worsening trend, escalate the triage recommendation one level.
+- Tailor probabilities to the active profile's age/sex (e.g. fever red flags differ for infants vs. adults).
+
+Data is fetched server-side inside the chat route using `supabaseAdmin` + the authenticated user id (already available there) and the `active_profile_id` passed in the request body.
+
+Client side (`ChatWindow`): include `activeProfileId` in the chat POST body.
+
+---
 
 ## Out of scope
-- No new connectors, no API keys, no scraping of Mayo/WebMD.
-- No changes to chat, dashboard, auth, or styling system.
-- Existing entries already in the DB are not re-fetched; they keep their current `source_url` and just won't show a source label until regenerated.
+- Pharmacy/Rx import (manual entry only).
+- Drug-drug interaction database (we only flag side effects users entered or AI infers from common knowledge).
+- Sharing profiles between accounts.
+- Notifications/reminders for meds.
+
+---
 
 ## Technical notes
-- MedlinePlus wsearch returns XML by default; we'll request and parse it with a small regex/`fast-xml-parser`-free approach (string extraction of `<content name="title">` and `<content name="FullSummary">`), to avoid adding dependencies.
-- All network calls remain inside the `createServerFn` handler (server-only).
-- Error messages thrown from the server function already surface as toasts on the library search page.
+- Active profile context: small React context provider mounted in `__root.tsx`, hydrates from `localStorage`, falls back to the user's `is_default=true` row.
+- All queries use the browser Supabase client with RLS — no new server functions needed except the chat route enrichment.
+- Recharts already installed; reuse the bucket/aggregation utility from `dashboard.tsx` (extract to `src/lib/chart-utils.ts`).
+- Age computed from `date_of_birth` on the fly; no stored age.

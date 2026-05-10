@@ -60,8 +60,9 @@ export const Route = createFileRoute("/api/chat")({
           const body = (await request.json()) as {
             messages: UIMessage[];
             threadId: string;
+            activeProfileId?: string | null;
           };
-          const { messages, threadId } = body;
+          const { messages, threadId, activeProfileId } = body;
           if (!threadId || !Array.isArray(messages)) {
             return new Response("Bad request", { status: 400 });
           }
@@ -73,6 +74,63 @@ export const Route = createFileRoute("/api/chat")({
             .eq("id", threadId)
             .maybeSingle();
           if (!thread) return new Response("Thread not found", { status: 404 });
+
+          // Build profile + meds + symptom history context
+          let contextBlock = "";
+          if (activeProfileId) {
+            const [{ data: profile }, { data: meds }, { data: symptoms }] = await Promise.all([
+              supabase.from("profiles_dependents").select("*").eq("id", activeProfileId).maybeSingle(),
+              supabase.from("medications").select("*").eq("profile_id", activeProfileId).is("ended_on", null),
+              supabase
+                .from("symptom_logs")
+                .select("symptom, severity, logged_at")
+                .eq("profile_id", activeProfileId)
+                .gte("logged_at", new Date(Date.now() - 30 * 86400000).toISOString())
+                .order("logged_at", { ascending: true }),
+            ]);
+
+            const lines: string[] = [];
+            if (profile) {
+              const dob = profile.date_of_birth ? new Date(profile.date_of_birth) : null;
+              let age: number | null = null;
+              if (dob) {
+                const now = new Date();
+                age = now.getFullYear() - dob.getFullYear();
+                const m = now.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+              }
+              lines.push(`ACTIVE PROFILE: ${profile.name} — ${profile.relation}, ${profile.sex}${age != null ? `, ${age} years old` : ""}${profile.notes ? ` (notes: ${profile.notes})` : ""}`);
+            }
+            if (meds && meds.length > 0) {
+              lines.push("\nCURRENT MEDICATIONS:");
+              for (const m of meds) {
+                const se = (m.common_side_effects ?? []).join(", ");
+                lines.push(`  - ${m.name}${m.dosage ? ` ${m.dosage}` : ""}${m.frequency ? ` ${m.frequency}` : ""} (${m.kind}${m.started_on ? `, since ${m.started_on}` : ""})${se ? ` — known side effects: ${se}` : ""}`);
+              }
+            }
+            if (symptoms && symptoms.length > 0) {
+              const bySymptom = new Map<string, { severity: number; logged_at: string }[]>();
+              for (const s of symptoms) {
+                const arr = bySymptom.get(s.symptom) ?? [];
+                arr.push({ severity: s.severity, logged_at: s.logged_at });
+                bySymptom.set(s.symptom, arr);
+              }
+              lines.push("\nRECENT SYMPTOM HISTORY (last 30 days):");
+              for (const [name, arr] of bySymptom) {
+                const first = new Date(arr[0].logged_at);
+                const last = new Date(arr[arr.length - 1].logged_at);
+                const days = Math.max(1, Math.floor((last.getTime() - first.getTime()) / 86400000) + 1);
+                const trend = arr[arr.length - 1].severity - arr[0].severity;
+                const trendStr = trend > 0 ? "worsening" : trend < 0 ? "improving" : "stable";
+                lines.push(`  - ${name}: ${arr.length} entries over ${days} day(s), ${trendStr} (severity ${arr[0].severity} → ${arr[arr.length - 1].severity})`);
+              }
+            }
+
+            if (lines.length > 0) {
+              contextBlock = `\n\n---\nUSER CONTEXT (use this to personalize triage):\n${lines.join("\n")}\n\nIMPORTANT INTEGRATION RULES:\n- Before suggesting a new condition, check if reported symptoms match listed medication side effects and surface that possibility first.\n- If a reported symptom appears in the recent history with duration ≥ 7 days OR a worsening trend, escalate the triage recommendation one level.\n- Tailor probabilities and red flags to the active profile's age and sex (e.g. fever in infants under 3 months is always a red flag).\n---`;
+            }
+          }
+
 
           // Persist the latest user message
           const lastMsg = messages[messages.length - 1];
@@ -112,7 +170,7 @@ export const Route = createFileRoute("/api/chat")({
 
           const result = streamText({
             model,
-            system: SYSTEM_PROMPT,
+            system: SYSTEM_PROMPT + contextBlock,
             messages: await convertToModelMessages(messages),
           });
 
