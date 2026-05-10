@@ -1,6 +1,6 @@
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
-import { Plus, Trash2, LogOut, MessageSquareText, Activity, BookOpen } from "lucide-react";
+import { Plus, Trash2, LogOut, MessageSquareText, Activity } from "lucide-react";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
@@ -31,9 +31,6 @@ export function ThreadSidebar({
       <nav className="flex flex-col gap-0.5 px-2 pt-2">
         <Link to="/dashboard" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-sidebar-accent/50 hover:text-foreground">
           <Activity className="size-3.5" /> Health dashboard
-        </Link>
-        <Link to="/library" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-sidebar-accent/50 hover:text-foreground">
-          <BookOpen className="size-3.5" /> Disease library
         </Link>
       </nav>
 
